@@ -1,0 +1,20 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "局域网文件传输工具",
+  "outputfilename": "局域网文件传输工具",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "",
+    "email": ""
+  },
+  "info": {
+    "companyName": "",
+    "productName": "局域网文件传输工具",
+    "productVersion": "0.0.3",
+    "copyright": "Copyright © 2025",
+    "comments": "局域网文件传输工具"
+  }
+}

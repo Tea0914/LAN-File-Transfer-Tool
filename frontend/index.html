@@ -1,0 +1,701 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>局域网文件传输工具</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *;**script-src 'self' 'unsafe-inline' 'unsafe-eval';** ">
+<style>
+    /* 全局样式 */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #ffffff;
+        color: #333333;
+        line-height: 1.6;
+        user-select: none;
+        overflow: hidden;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* 首页样式 */
+    .home-page {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+    }
+    
+    .app-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 40px;
+    }
+    
+    .mode-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+    }
+    
+    /* 功能页样式 */
+    .function-page {
+        display: none;
+        flex-direction: column;
+        flex: 1;
+    }
+    
+    .page-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e1e5e9;
+    }
+    
+    .back-button {
+        background: none;
+        border: none;
+        font-size: 16px;
+        color: #007acc;
+        cursor: pointer;
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+        margin-right: 15px;
+    }
+    
+    .back-button:hover {
+        background-color: #f3f3f3;
+    }
+    
+    .page-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    
+    /* 输入区域 */
+    .input-section {
+        margin-bottom: 30px;
+    }
+    
+    .input-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    
+    .path-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d0d7de;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+        background: #fafbfc;
+    }
+    
+    .path-input:focus {
+        outline: none;
+        border-color: #007acc;
+        background: #ffffff;
+    }
+    
+    /* 按钮样式 */
+    .action-button {
+        background: #007acc;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        min-width: 120px;
+    }
+    
+    .action-button:hover {
+        background: #005a9e;
+    }
+    
+    .action-button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+    }
+    
+    .mode-button {
+        background: #ffffff;
+        color: #333333;
+        border: 2px solid #e1e5e9;
+        padding: 20px 30px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 150px;
+    }
+    
+    .mode-button:hover {
+        border-color: #007acc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 122, 204, 0.15);
+    }
+    
+    /* 状态显示 */
+    .status-section {
+        margin: 20px 0;
+    }
+    
+    .status-text {
+        font-size: 14px;
+        color: #666;
+        padding: 8px 12px;
+        background: #f6f8fa;
+        border-radius: 6px;
+        border-left: 3px solid #007acc;
+    }
+    
+    
+    /* 传输进度表格 */
+    .transfer-table-container {
+        margin-top: 15px;
+        background: #f8f9fa;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        overflow: hidden;
+        max-height: 200px;
+    }
+    
+    .transfer-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 12px;
+    }
+    
+    .transfer-table th {
+        background: #f1f3f4;
+        padding: 8px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #5f6368;
+        border-bottom: 1px solid #e1e5e9;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    
+    .transfer-table td {
+        padding: 6px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+    
+    .transfer-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .transfer-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    /* 进度条样式 */
+    .progress-container {
+        width: 100%;
+        height: 6px;
+        background: #e1e5e9;
+        border-radius: 3px;
+        margin: 2px 0;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #007acc, #00a8ff);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+    
+    /* 状态指示器 */
+    .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    
+    .status-waiting {
+        background: #ffcc02;
+    }
+    
+    .status-transferring {
+        background: #007acc;
+    }
+    
+    .status-completed {
+        background: #4ec9b0;
+    }
+    
+    .status-failed {
+        background: #f44747;
+    }
+    
+
+    /* 重置按钮样式 */
+    .reset-button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-left: 10px;
+    }
+
+    .reset-button:hover {
+        background: #5a6268;
+    }
+
+    .reset-button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+    }
+
+    /* 现代化进度条样式 */
+    .progress-container {
+        width: 100%;
+        height: 8px;
+        background: #f1f3f4;
+        border-radius: 4px;
+        margin: 8px 0;
+        overflow: hidden;
+        position: relative;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #059669);
+        border-radius: 4px;
+        transition: width 0.2s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+
+    /* 进度信息显示 */
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .progress-percent {
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .progress-details {
+        display: flex;
+        gap: 12px;
+        font-size: 11px;
+    }
+
+    .progress-speed, .progress-eta {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 3px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    
+    /* 拖拽区域样式 */
+    .drop-zone {
+        width: 100%;
+        min-height: 120px;
+        border: 2px dashed #d0d7de;
+        border-radius: 12px;
+        background: #fafbfc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .drop-zone:hover {
+        border-color: #007acc;
+        background: #f0f7ff;
+    }
+
+    .drop-zone.drag-over {
+        border-color: #007acc;
+        background: #e6f3ff;
+        transform: scale(1.02);
+    }
+
+    .drop-zone.highlight {
+        border-color: #007acc;
+        background: #e6f3ff;
+        transform: scale(1.02);
+    }
+
+    .drop-zone-content {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .drop-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .drop-text {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+
+    .drop-hint {
+        font-size: 12px;
+        color: #666;
+    }
+
+    /* 已选择文件样式 */
+    .selected-files {
+        margin-top: 16px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e1e5e9;
+    }
+
+    .selected-header {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+    }
+
+    .file-list {
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 4px 0;
+        font-size: 13px;
+        color: #333;
+    }
+
+    .file-icon {
+        margin-right: 8px;
+        font-size: 14px;
+    }
+
+    .file-name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .file-size {
+        color: #666;
+        font-size: 11px;
+        margin-left: 8px;
+    }
+
+    /* 对话框样式 */
+    .file-selection-dialog,
+    .error-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+    }
+
+    .dialog-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+    }
+
+    .dialog-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        min-width: 320px;
+        max-width: 90vw;
+        overflow: hidden;
+    }
+
+    .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e1e5e9;
+    }
+
+    .dialog-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .dialog-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #666;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+    }
+
+    .dialog-close:hover {
+        background: #f3f3f3;
+    }
+
+    .dialog-body {
+        padding: 24px;
+    }
+
+    .dialog-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e1e5e9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .dialog-button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 80px;
+    }
+
+    .dialog-button.primary {
+        background: #007acc;
+        color: white;
+    }
+
+    .dialog-button.primary:hover {
+        background: #005a9e;
+    }
+
+    .dialog-button.secondary {
+        background: #f3f3f3;
+        color: #333;
+    }
+
+    .dialog-button.secondary:hover {
+        background: #e5e5e5;
+    }
+
+    /* 选择按钮样式 */
+    .selection-button {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 12px;
+    }
+
+    .selection-button:last-child {
+        margin-bottom: 0;
+    }
+
+    .selection-button:hover {
+        border-color: #007acc;
+        background: #f0f7ff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 122, 204, 0.1);
+    }
+
+    .button-icon {
+        font-size: 24px;
+    }
+
+    .button-text {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+
+    /* 隐藏类 */
+    .hidden {
+        display: none !important;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <!-- 首页 -->
+    <div id="homePage" class="home-page">
+        <h1 class="app-title">🚀 局域网文件传输工具</h1>
+        <div class="mode-buttons">
+            <button class="mode-button" onclick="showSendPage()">
+                📤 发送文件
+            </button>
+            <button class="mode-button" onclick="showReceivePage()">
+                📥 接收文件
+            </button>
+        </div>
+    </div>
+
+    <!-- 发送页面 -->
+    <div id="sendPage" class="function-page">
+        <div class="page-header">
+            <button class="back-button" onclick="showHomePage()">← 返回</button>
+            <h2 class="page-title">发送文件</h2>
+        </div>
+        
+        <div class="input-section">
+            <label class="input-label">点击选择文件或文件夹</label>
+            <div id="dropZone" class="drop-zone">
+                <div class="drop-zone-content">
+                    <div class="drop-icon">📁</div>
+                    <div class="drop-text">点击选择文件或文件夹</div>
+                    <div class="drop-hint">支持文件和文件夹选择</div>
+                </div>
+            </div>
+            <div id="selectedFiles" class="selected-files" style="display: none;">
+                <div class="selected-header">已选择:</div>
+                <div id="fileList" class="file-list"></div>
+            </div>
+        </div>
+        
+        <div class="action-section">
+            <button class="action-button" onclick="sendFile()">开始发送</button>
+            <button class="reset-button" onclick="resetSendState()">清空状态</button>
+        </div>
+        
+        <div class="status-section">
+            <div id="sendStatus" class="status-text">就绪</div>
+            <div class="progress-container">
+                <div id="sendProgressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="progress-info">
+                <span id="sendProgressPercent" class="progress-percent">0%</span>
+                <div class="progress-details">
+                    <span id="sendProgressSpeed" class="progress-speed">0 MB/s</span>
+                    <span id="sendProgressETA" class="progress-eta">计算中...</span>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+
+    <!-- 接收页面 -->
+    <div id="receivePage" class="function-page">
+        <div class="page-header">
+            <button class="back-button" onclick="showHomePage()">← 返回</button>
+            <h2 class="page-title">接收文件</h2>
+        </div>
+        
+        <div class="status-section">
+            <div id="receiveStatus" class="status-text">就绪</div>
+            <div class="progress-container">
+                <div id="receiveProgressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="progress-info">
+                <span id="receiveProgressPercent" class="progress-percent">0%</span>
+                <div class="progress-details">
+                    <span id="receiveProgressSpeed" class="progress-speed">0 MB/s</span>
+                    <span id="receiveProgressETA" class="progress-eta">计算中...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-section">
+            <button class="reset-button" onclick="resetReceiveState()">清空状态</button>
+        </div>
+        
+        
+    </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
